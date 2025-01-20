@@ -1,6 +1,7 @@
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
+from time import gmtime, strftime
 import time
 
 def get_driver():
@@ -19,15 +20,30 @@ def get_driver():
     driver.get('http://automated.pythonanywhere.com')
     return driver
 
+def date_moment():
+    fecha_str = strftime("%a, %d %b %Y %H:%M:%S +0000", gmtime())
+    return fecha_str
+
 def clean_text(text):
     # ''''''extract temperature''''''    
     output = float(text.split(": ")[1])
     return output
 
+def create_file():
+    name = date_moment()
+    f = open(name + ".txt", "x")
+    return f
+
 def main():
     driver = get_driver()
     time.sleep(2)
     element = driver.find_element(by="xpath", value="/html/body/div[1]/div/h1[2]")
-    return clean_text(element.text)
+    date = clean_text(element.text)
+    file = create_file()
+    file.write(str(date))
+    return file
 
-print(main())
+#Ciclo para repetir la funcion cada ciertos segundos
+while True :
+    main()
+    time.sleep(5)
