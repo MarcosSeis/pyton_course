@@ -1,49 +1,41 @@
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from webdriver_manager.chrome import ChromeDriverManager
-from time import gmtime, strftime
-import time
+import requests
+from bs4 import BeautifulSoup
+import json
+from datetime import datetime
 
-def get_driver():
-    #Opciones para hacerlo mas facil la navegacion
-    service = Service(ChromeDriverManager().install())
-    options = webdriver.ChromeOptions()
-    options.add_argument('disable-infobars')
-    options.add_argument('start-maximazed')
-    options.add_argument('disable-dev-shm-usage')
-    options.add_argument('no-sandbox')
-    options.add_experimental_option('excludeSwitches', ['enable-automation'])
-    options.add_argument('disable-blink-features=AutomationControlled')
-    options.add_argument('--headless')
-    # Configura el navegador con el servicio
-    driver = webdriver.Chrome(service=service, options=options)
-    driver.get('http://automated.pythonanywhere.com')
-    return driver
+URL = "https://www.juniorminingnetwork.com/mining-topics/topic/mexico.html"
+headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"}
+page = requests.get(URL, headers=headers)
 
-def date_moment():
-    fecha_str = strftime("%a, %d %b %Y %H:%M:%S +0000", gmtime())
-    return fecha_str
+soup = BeautifulSoup(page.content, "html.parser")
 
-def clean_text(text):
-    # ''''''extract temperature''''''    
-    output = float(text.split(": ")[1])
-    return output
+print(soup.prettify())  # Muestra el HTML recibido para diagnosticar problemas
 
-def create_file():
-    name = date_moment()
-    f = open(name + ".txt", "x")
-    return f
+def get_articles():
+    articles = []
+    for article in soup.find_all(class_="article-title"):
+        title = article.a.text.strip()
+        link = "https://www.juniorminingnetwork.com" + article.a["href"]
+        
+        date_element = article.find_previous_sibling(class_="article-date")
+        date_str = date_element.text.strip() if date_element else "Fecha no disponible"
+        
+        try:
+            date = datetime.strptime(date_str, "%B %d, %Y").date().isoformat()
+        except ValueError:
+            date = "Fecha no disponible"
+        
+        articles.append({"title": title, "date": date, "link": link})
+    return articles
+
+def save_to_json(data):
+    with open("articles.json", "w", encoding="utf-8") as file:
+        json.dump(data, file, indent=4, ensure_ascii=False)
 
 def main():
-    driver = get_driver()
-    time.sleep(2)
-    element = driver.find_element(by="xpath", value="/html/body/div[1]/div/h1[2]")
-    date = clean_text(element.text)
-    file = create_file()
-    file.write(str(date))
-    return file
+    articles = get_articles()
+    save_to_json(articles)
+    print(f"Archivo 'articles.json' creado con éxito. Se encontraron {len(articles)} artículos.")
 
-#Ciclo para repetir la funcion cada ciertos segundos
-while True :
+if __name__ == "__main__":
     main()
-    time.sleep(5)

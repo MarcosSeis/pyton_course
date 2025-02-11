@@ -1,28 +1,42 @@
 import requests
 from bs4 import BeautifulSoup
+import json
+from datetime import datetime
 
-URL = "https://realpython.github.io/fake-jobs/"
-page = requests.get(URL)
+URL = "https://www.juniorminingnetwork.com/mining-topics/topic/mexico.html"
+headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"}
+page = requests.get(URL, headers=headers)
 
 soup = BeautifulSoup(page.content, "html.parser")
 
-# Crear el archivo (sobrescribiendo si ya existe)
-def create_file():
-    name = "nombres"
-    return open(name + ".txt", "w")  # Modo "w" para sobrescribir
+def get_articles():
+    articles = []
+    today = datetime.today().date().isoformat()
+    
+    for article in soup.find_all(class_="article-title"):
+        title = article.a.text.strip()
+        link = "https://www.juniorminingnetwork.com" + article.a["href"]
+        
+        date_element = article.find_previous_sibling(class_="article-date")
+        date_str = date_element.text.strip() if date_element else "Fecha no disponible"
+        
+        try:
+            date = datetime.strptime(date_str, "%B %d, %Y").date().isoformat()
+        except ValueError:
+            date = "Fecha no disponible"
+        
+        if date == today:
+            articles.append({"title": title, "date": date, "link": link})
+    return articles
 
-# Extraer los nombres de los <h3>
-def names():
-    return [name.text for name in soup.find_all('h3')]  # Retorna una lista de nombres
+def save_to_json(data):
+    with open("articles.json", "w", encoding="utf-8") as file:
+        json.dump(data, file, indent=4, ensure_ascii=False)
 
-# Guardar los nombres en el archivo
 def main():
-    nombres = names()  # Lista de nombres
-    file = create_file()
-    for nombre in nombres:
-        file.write(nombre + "\n")  # Escribir cada nombre en una línea nueva
-    file.close()  # Cerrar el archivo después de escribir
-    print(f"Archivo 'nombres.txt' creado con éxito.")
+    articles = get_articles()
+    save_to_json(articles)
+    print(f"Archivo 'articles.json' creado con éxito. Se encontraron {len(articles)} artículos de hoy.")
 
 if __name__ == "__main__":
     main()
