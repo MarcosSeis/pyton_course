@@ -32,8 +32,11 @@ def update_articles_with_content(json_filename="articles.json"):
     
     with open(json_filename, "w", encoding="utf-8") as file:
         json.dump(articles, file, indent=4, ensure_ascii=False)
-    
+
+
     print("El archivo JSON ha sido actualizado con el contenido de los artículos.")
+
+    return articles
 
 if __name__ == "__main__":
     update_articles_with_content()
