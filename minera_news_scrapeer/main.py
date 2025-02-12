@@ -15,12 +15,14 @@ def main():
     print("Contenido de los artículos agregado a 'articles.json'.")
 
     #Paso 3: Usar la IA
-    prompt_editor = "Eres un editor de textos de una pagina web de noticias llamada mineria news, a continuacion te voy a pasar un texto en inglés, con title, date, link y content, todo en ingles, quiero que me devuelvas un objeto con title, date y content, en español en el valor pero que las llaves las conserves igual, el value de contenent en formato de nota para el sitio web mineria news, esto con el fin de generar una nota que sera publicada, trata de ser claro, formal pero informativo y si puedes complementar la nota con datos sobre lo que se habla hazlo, es iimportante que me regreses un objeto como te lo pedi, title, date y content."
+    prompt_editor = "Eres un editor de textos de una pagina web de noticias llamada mineria news, a continuacion te voy a pasar un texto en inglés, con title, date, link y content, todo en ingles, quiero que me devuelvas un objeto con title, date y content, en español en el valor pero que las llaves las conserves igual, el value de contenent en formato con parrafos y espacios correctamente identados para la de nota para el sitio web mineria news, esto con el fin de generar una nota que sera publicada, trata de ser claro, formal pero informativo y si puedes complementar la nota con datos sobre lo que se habla hazlo, es iimportante que me regreses un objeto como te lo pedi, title, date y content."
 
     noticias = process_items(articles_full, prompt_editor)
+    print("Contenido generado con Ia listo")
 
     #Paso 4: Publicar de forma automatica en Wordpress
     publicar_noticias_en_wordpress(noticias)
+    print("Contenido publicado correctamente en Wordpress")
 
 if __name__ == "__main__":
     main()
